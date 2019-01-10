@@ -20,10 +20,12 @@ namespace dungeon {
         width: number;
         height: number;
 
+        protected firstCheck = true;
+
         constructor(col: number, row: number, width = 1, height = 1) {
             super();
-            this.col = col + 1;
-            this.row = row + 1;
+            this.col = col;
+            this.row = row;
             this.width = width;
             this.height = height;
         }
@@ -32,10 +34,20 @@ namespace dungeon {
             const col = target.sprite.x >> 4;
             const row = target.sprite.y >> 4;
 
-            return !(col < this.col ||
+            const triggered = !(col < this.col ||
                 (col > this.col + this.width - 1) ||
                 row < this.row ||
                 (row > this.row + this.height - 1));
+
+            // Add some extra logic to make sure the player doesn't set off a trigger
+            // that they spawn into. The trigger needs to go low before it can fire
+            if (this.firstCheck) {
+                if (!triggered) this.firstCheck = false;
+                return false;
+            }
+            else {
+                return triggered
+            }
         }
 
         drawDebug() {
@@ -86,7 +98,7 @@ namespace dungeon {
                 y += dy;
             }
 
-            return new TileTrigger(col, Math.min(y, row), 1, 1 + Math.abs(y - row))
+            return new TileTrigger(col + 1, 1 + Math.min(y, row), 1, 1 + Math.abs(y - row))
         }
         else {
             const dx = direction === Direction.East ? 1 : -1;
@@ -101,7 +113,7 @@ namespace dungeon {
                 x += dx;
             }
 
-            return new TileTrigger(Math.min(col, x), row, 1 + Math.abs(col - x), 1);
+            return new TileTrigger(1 + Math.min(col, x), row + 1, 1 + Math.abs(col - x), 1);
         }
     }
 }

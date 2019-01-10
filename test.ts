@@ -17,4 +17,12 @@ let arrowTest = img`
     1 1 1 1 1 1 1 1 1 1 1 6 1 1 6 1
     `;
 
-dungeon.loadRoom(arrowTest);
+
+
+const startRoom = new dungeon.Room(arrowTest);
+const nextRoom = new dungeon.Room(arrowTest);
+
+startRoom.north = nextRoom;
+nextRoom.south = startRoom;
+
+dungeon.loadRoom(startRoom)

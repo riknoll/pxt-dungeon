@@ -75,8 +75,7 @@ namespace dungeon {
 
     function initHandlers() {
         sprites.onOverlap(SpriteKind.Player, SpriteKind.Arrow, function (player: Sprite, arrow: Sprite) {
-            info.changeLifeBy(-1);
-            arrow.destroy();
+            world.player.takeDamage(arrow.x, arrow.y);
         })
     }
 
@@ -85,14 +84,13 @@ namespace dungeon {
         triggers: Trigger[];
 
         constructor() {
-
         }
 
         update() {
             this.checkTriggers();
         }
 
-        loadRoom(room: Room) {
+        loadRoom(room: Room, enteringFrom?: Direction) {
             this.triggers = [];
             scene.setBackgroundColor(Math.randomRange(2, 14))
 
@@ -160,11 +158,21 @@ namespace dungeon {
                     tilemap.setPixel(col + 1, row + 1, tile);
                 }
             }
-            // TODO: Create Doors
-            // TODO: Create Traps
-            // TODO: Spawn Enemies
+
+            if (room.north) this.createDoorway(Direction.North, room.north, tilemap);
+            if (room.east) this.createDoorway(Direction.East, room.east, tilemap);
+            if (room.south) this.createDoorway(Direction.South, room.south, tilemap);
+            if (room.west) this.createDoorway(Direction.West, room.west, tilemap);
 
             scene.setTileMap(tilemap);
+
+            if (enteringFrom != undefined) {
+                // Move the player to the doorway
+                const col = getDoorCol(enteringFrom, tilemap.width);
+                const row = getDoorRow(enteringFrom, tilemap.height);
+                this.player.sprite.x = (col << 4) + 8;
+                this.player.sprite.y = (row << 4) + 8
+            }
         }
 
         protected checkTriggers() {
@@ -224,6 +232,46 @@ namespace dungeon {
 
             this.triggers.push(trigger);
         }
+
+        protected createDoorway(direction: Direction, next: Room, tilemap: Image) {
+            const col = getDoorCol(direction, tilemap.width);
+            const row = getDoorRow(direction, tilemap.height);
+
+            const trigger = new TileTrigger(col, row);
+            trigger.action = () => {
+                this.loadRoom(next, getOpposite(direction));
+            }
+
+            tilemap.setPixel(col, row, TileInternal.DoorNorth);
+
+            this.triggers.push(trigger);
+        }
+    }
+
+    function getDoorCol(direction: Direction, width: number) {
+        switch (direction) {
+            case Direction.South:
+            case Direction.North:
+                return width >> 1;
+                break;
+            case Direction.East:
+                return width - 1;
+            case Direction.West:
+                return 0;
+        }
+    }
+
+    function getDoorRow(direction: Direction, height: number) {
+        switch (direction) {
+            case Direction.East:
+            case Direction.West:
+                return height >> 1;
+                break;
+            case Direction.North:
+                return 0;
+            case Direction.South:
+                return height - 1;
+        }
     }
 
     export let world: World;
@@ -272,9 +320,12 @@ namespace dungeon {
         }
     }
 
-    export function loadRoom(room: Image) {
+    export function loadRoom(room: Room) {
         init();
-        const r = new Room(room);
-        world.loadRoom(r)
+        world.loadRoom(room)
+    }
+
+    function getOpposite(direction: Direction): Direction {
+        return (direction + 2) % 4
     }
 }
