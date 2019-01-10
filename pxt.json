@@ -3,15 +3,19 @@
     "version": "0.0.0",
     "description": "",
     "dependencies": {
-        "device": "*"
+        "device": "*",
+        "animation": "*"
     },
     "files": [
         "README.md",
-        "main.ts"
+        "main.ts",
+        "character.ts",
+        "room.ts",
+        "assets.ts",
+        "triggers.ts"
     ],
     "testFiles": [
         "test.ts"
     ],
-    "public": false,
-    "additionalFilePaths": []
+    "public": false
 }
