@@ -1,11 +1,12 @@
 // Add your code here
 namespace dungeon {
-    const debug = true;
+    const debug = false;
 
     export enum SpriteKind {
         Player,
         Arrow,
-        Launcher
+        Launcher,
+        SpikeTrap
     }
 
     export enum RoomTile {
@@ -26,7 +27,7 @@ namespace dungeon {
         Door
     }
 
-    enum TileInternal {
+    export enum TileInternal {
         Floor,
         Hole,
         Wall,
@@ -41,22 +42,22 @@ namespace dungeon {
     function initTiles() {
         scene.setTile(TileInternal.Floor, sprites.castle.tilePath5);
         scene.setTile(TileInternal.Hole, img`
-            d d d d d d d d d d d d d d d d
-            d d d f f f f f f f f f f d d d
-            d d f f f f f f f f f f f f d d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d f f f f f f f f f f f f f f d
-            d d f f f f f f f f f f f f d d
-            d d d f f f f f f f f f f d d d
-            d d d d d d d d d d d d d d d d
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
+            f f f f f f f f f f f f f f f f
             `);
         scene.setTile(TileInternal.Spike, sprites.castle.shrub);
 
@@ -68,7 +69,6 @@ namespace dungeon {
         const s = sprites.create(sprites.castle.heroWalkFront1, SpriteKind.Player);
         world.player = new Character(s);
         scene.cameraFollowSprite(s);
-        controller.moveSprite(s);
 
         info.setLife(3);
     }
@@ -77,22 +77,36 @@ namespace dungeon {
         sprites.onOverlap(SpriteKind.Player, SpriteKind.Arrow, function (player: Sprite, arrow: Sprite) {
             world.player.takeDamage(arrow.x, arrow.y);
         })
+        sprites.onOverlap(SpriteKind.Player, SpriteKind.SpikeTrap, function (player: Sprite, trap: Sprite) {
+            world.player.takeDamage(trap.x, trap.y);
+        })
+    }
+
+    export interface Updater {
+        update(time: number): void;
+        isRunning(): void;
     }
 
     export class World {
         player: Character;
         triggers: Trigger[];
+        updaters: Updater[];
+
+        map: Image;
 
         constructor() {
         }
 
         update() {
+            const time = control.millis();
             this.checkTriggers();
+            this.updateChildren(time);
         }
 
         loadRoom(room: Room, enteringFrom?: Direction) {
             this.triggers = [];
-            scene.setBackgroundColor(Math.randomRange(2, 14))
+            this.updaters = [];
+            scene.setBackgroundColor(13)
 
             let tilemap = image.create(room.width + 2, room.height + 2);
             tilemap.fill(TileInternal.Wall);
@@ -120,7 +134,8 @@ namespace dungeon {
                             tile = TileInternal.Floor;
                             break;
                         case RoomTile.SpikeTrap:
-                            tile = TileInternal.Spike;
+                            tile = TileInternal.Floor;
+                            this.createSpikeTrap(col, row);
                             break;
                         case RoomTile.Door:
                             tile = TileInternal.DoorNorth;
@@ -164,7 +179,10 @@ namespace dungeon {
             if (room.south) this.createDoorway(Direction.South, room.south, tilemap);
             if (room.west) this.createDoorway(Direction.West, room.west, tilemap);
 
+            this.createPitTriggers(tilemap);
+
             scene.setTileMap(tilemap);
+            this.map = tilemap;
 
             if (enteringFrom != undefined) {
                 // Move the player to the doorway
@@ -175,6 +193,11 @@ namespace dungeon {
             }
         }
 
+        addUpdater(u: Updater) {
+            if (!this.updaters) return;
+            this.updaters.push(u);
+        }
+
         protected checkTriggers() {
             if (this.triggers) {
                 const toRemove: Trigger[] = [];
@@ -183,7 +206,9 @@ namespace dungeon {
                 for (let i = 0; i < this.triggers.length; i++) {
                     current = this.triggers[i];
                     if (current.check(this.player)) {
-                        toRemove.push(current);
+                        if (!current.isEternal) {
+                            toRemove.push(current);
+                        }
                         if (current.action) {
                             current.action();
                         }
@@ -191,6 +216,23 @@ namespace dungeon {
                 }
 
                 while (toRemove.length) this.triggers.removeElement(toRemove.shift());
+            }
+        }
+
+        protected updateChildren(time: number) {
+            if (this.updaters) {
+                const toRemove: Updater[] = [];
+                let current: Updater;
+
+                for (let i = 0; i < this.updaters.length; i++) {
+                    current = this.updaters[i];
+                    current.update(time);
+                    if (!current.isRunning()) {
+                        toRemove.push(current);
+                    }
+                }
+
+                while (toRemove.length) this.updaters.removeElement(toRemove.shift());
             }
         }
 
@@ -233,6 +275,26 @@ namespace dungeon {
             this.triggers.push(trigger);
         }
 
+        protected createSpikeTrap(col: number, row: number) {
+            const trap = makeSpikeTrap();
+            trap.target.left = (col + 1) << 4;
+            trap.target.top = (row + 1) << 4;
+            trap.target.z = -1;
+
+            const trigger = new MultiTrigger([
+                new SimpleTrigger(() => !trap.isRunning()),
+                new TileTrigger(col + 1, row + 1)
+            ]);
+
+            trigger.isEternal = true;
+
+            trigger.action = () => {
+                trap.start();
+            };
+
+            this.triggers.push(trigger);
+        }
+
         protected createDoorway(direction: Direction, next: Room, tilemap: Image) {
             const col = getDoorCol(direction, tilemap.width);
             const row = getDoorRow(direction, tilemap.height);
@@ -246,6 +308,80 @@ namespace dungeon {
 
             this.triggers.push(trigger);
         }
+
+        protected createPitTriggers(map: Image) {
+            let marked: boolean[] = [];
+            let isPit: boolean;
+            let index: number;
+
+            let triggers: Trigger[] = [];
+
+            for (let r = 0; r < map.height; r++) {
+                for (let c = 0; c < map.width; c++) {
+                    index = getIndex(c, r, map.width);
+
+                    if (marked[index]) {
+                        continue;
+                    }
+
+                    isPit = map.getPixel(c, r) === TileInternal.Hole;
+                    if (isPit) {
+                        // Make the biggest rectangle we can
+                        marked[index] = true;
+                        let width = 0;
+                        let height = 0;
+                        let running = true;
+
+
+                        while (running) {
+                            width++;
+                            height++;
+
+                            for (let i = 0; i < width; i++) {
+                                if (marked[getIndex(c + i, r + height, map.width)] || map.getPixel(c + i, r + height) !== TileInternal.Hole) {
+                                    width--;
+                                    height--;
+                                    running = false;
+                                    break;
+                                }
+                            }
+
+                            for (let i = 0; i < height - 1; i++) {
+                                if (marked[getIndex(c + width, r + i, map.width)] || map.getPixel(c + width, r + i) !== TileInternal.Hole) {
+                                    width--;
+                                    height--;
+                                    running = false;
+                                    break;
+                                }
+                            }
+
+                            console.log("Expand")
+                        }
+
+
+                        for (let dx = 0; dx < width + 1; dx++) {
+                            for (let dy = 0; dy < height + 1; dy++) {
+                                marked[getIndex(c + dx, r + dy, map.width)] = true;
+                            }
+                        }
+
+                        triggers.push(new TileTrigger(c, r, width + 1, height + 1));
+                    }
+                }
+            }
+
+            triggers.forEach(t => {
+                t.isEternal = true;
+                t.action = () => {
+                    world.player.fallDown(world.player.sprite.x >> 4, world.player.sprite.y >> 4)
+                };
+                this.triggers.push(t);
+            });
+        }
+    }
+
+    function getIndex(col: number, row: number, width: number) {
+        return col + row * width;
     }
 
     function getDoorCol(direction: Direction, width: number) {

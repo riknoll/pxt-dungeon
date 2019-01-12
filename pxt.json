@@ -12,7 +12,8 @@
         "character.ts",
         "room.ts",
         "assets.ts",
-        "triggers.ts"
+        "triggers.ts",
+        "keyframes.ts"
     ],
     "testFiles": [
         "test.ts"

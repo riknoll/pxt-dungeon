@@ -96,6 +96,9 @@ namespace dungeon {
         invincible: boolean;
         animationEndTime: number;
 
+        protected lastColumn: number;
+        protected lastRow: number;
+
         constructor(s: Sprite) {
             this.sprite = s;
             this.effects = [];
@@ -110,9 +113,12 @@ namespace dungeon {
         }
 
         update() {
+            this.updatePosition();
+
             const time = control.millis();
             if (time > this.animationEndTime) {
                 this.animationEndTime = undefined;
+                this.onAnimationEnd();
 
                 // Keep the direction, but remove the state
                 this.flags = this.flags & 0xf;
@@ -125,6 +131,10 @@ namespace dungeon {
             // If we are animating, ignore controls
             if (!(this.flags & CharacterFlag.NoMovement)) {
                 this.updateMovement();
+            }
+            else {
+                this.sprite.vx = 0;
+                this.sprite.vy = 0;
             }
 
             // Effects get applied last
@@ -180,11 +190,35 @@ namespace dungeon {
             }
         }
 
+        protected updatePosition() {
+            const c = this.sprite.x >> 4;
+            const r = this.sprite.y >> 4;
+
+            if ((c != this.lastColumn || r != this.lastRow) && world.map.getPixel(c, r) !== TileInternal.Hole) {
+                this.lastColumn = c;
+                this.lastRow = r;
+            }
+        }
+
+        protected onAnimationEnd() {
+            if (this.flags & CharacterFlag.Falling) {
+                this.sprite.x = (this.lastColumn << 4) + 8;
+                this.sprite.y = (this.lastRow << 4) + 8;
+                this.addEffect(new InvulnerableEffect(this));
+            }
+        }
+
         takeDamage(sourceX: number, sourceY: number) {
             if (!this.invincible) {
                 this.addEffect(new BumpEffect(this, sourceX, sourceY));
                 this.addEffect(new InvulnerableEffect(this));
             }
+        }
+
+        fallDown(column: number, row: number) {
+            this.setFlags((this.flags & 0xf) | CharacterFlag.Falling);
+            this.sprite.x = (column << 4) + 8;
+            this.sprite.y = (row << 4) + 8;
         }
 
 
@@ -194,8 +228,15 @@ namespace dungeon {
                 animation.setAction(this.sprite, newState);
                 this.flags = newState;
 
-                if (newState & CharacterFlag.NoMovement) {
+                if (newState & CharacterFlag.Attacking) {
                     this.animationEndTime = control.millis() + (attackAnimationInterval << 2);
+                }
+
+                if (newState & CharacterFlag.Falling) {
+                    this.animationEndTime = control.millis() + 1000;
+                    const anim = makeFallingAnimation();
+                    anim.target = this.sprite;
+                    anim.start();
                 }
             }
         }

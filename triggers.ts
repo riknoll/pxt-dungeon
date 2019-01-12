@@ -3,6 +3,7 @@ namespace dungeon {
 
     export class Trigger {
         action: Action;
+        isEternal: boolean;
 
         constructor() { }
 
@@ -46,6 +47,8 @@ namespace dungeon {
                 return false;
             }
             else {
+                if (triggered) this.firstCheck = true;
+                
                 return triggered
             }
         }
@@ -55,6 +58,41 @@ namespace dungeon {
                 (this.col << 4) - game.currentScene().camera.offsetX,
                 (this.row << 4) - game.currentScene().camera.offsetY,
                 this.width << 4, this.height << 4, 1);
+        }
+    }
+
+    export class MultiTrigger extends Trigger {
+        children: Trigger[];
+        constructor(children: Trigger[]) {
+            super();
+            this.children = children;
+        }
+
+        drawDebug() {
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].drawDebug();
+            }
+        }
+
+        check(target: Character): boolean {
+            for (let i = 0; i < this.children.length; i++) {
+                if (!this.children[i].check(target)) return false;
+            }
+            
+            return true;
+        }
+    }
+
+    export class SimpleTrigger extends Trigger {
+        checker: (target: Character) => boolean;
+
+        constructor(checker: (target: Character) => boolean) {
+            super();
+            this.checker = checker;
+        }
+
+        check(target: Character) {
+            return this.checker(target);
         }
     }
 
