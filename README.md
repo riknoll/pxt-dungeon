@@ -1,5 +1,22 @@
 # pxt-dungeon
 
+## Feature wishlist
+
+In rough priority order
+
+1. Enemies that spawn and attack user (v1)
+1. Randomly generated dungeons (v1)
+1. Multiple levels/floors (v1)
+1. Food items that restore player health (v1)
+1. Timed flamethrower traps (v1)
+1. Scoring mechanism (time? bravery? ruthlessness? heroism?)
+1. Better rendering of tilemap (e.g. more than one floor tile, pit edges, etc.)
+1. Keys + locked doors
+1. Powerups in treasure chests (e.g. speed boost, spike-proof, flying, sword -> boomerang, etc.)
+1. NPCs (e.g. shopkeepers, fun story stuff)
+1. Secrets
+1. Bosses
+
 ## TODO
 
 - [ ] Add a reference for your blocks here
