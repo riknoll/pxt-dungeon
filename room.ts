@@ -58,7 +58,7 @@ namespace dungeon {
             f f f f f f f f f f f f f f f f
             f f f f f f f f f f f f f f f f
             f f f f f f f f f f f f f f f f
-            `);
+        `);
         scene.setTile(TileInternal.Spike, sprites.castle.shrub);
 
         scene.setTile(TileInternal.Wall, sprites.castle.rock1, true);
@@ -84,13 +84,14 @@ namespace dungeon {
 
     export interface Updater {
         update(time: number): void;
-        isRunning(): void;
+        isRunning(): boolean;
     }
 
     export class World {
         player: Character;
         triggers: Trigger[];
         updaters: Updater[];
+        trackedSprites: Sprite[];
 
         map: Image;
 
@@ -104,8 +105,9 @@ namespace dungeon {
         }
 
         loadRoom(room: Room, enteringFrom?: Direction) {
+            this.cleanUpSprites(); 
             this.triggers = [];
-            this.updaters = [];
+            this.updaters = [this.player];
             scene.setBackgroundColor(13)
 
             let tilemap = image.create(room.width + 2, room.height + 2);
@@ -132,6 +134,7 @@ namespace dungeon {
                             break;
                         case RoomTile.EnemySpawn:
                             tile = TileInternal.Floor;
+                            this.createEnemy(col, row)
                             break;
                         case RoomTile.SpikeTrap:
                             tile = TileInternal.Floor;
@@ -242,9 +245,11 @@ namespace dungeon {
             sprite.left = (col + 1) << 4;
             sprite.top = (row + 1) << 4;
             sprite.setFlag(SpriteFlag.Ghost, true);
+            this.trackedSprites.push(sprite);
 
             trigger.action = () => {
                 const arrowSprite = sprites.create(assets.arrow[direction], SpriteKind.Arrow);
+                this.trackedSprites.push(arrowSprite);
                 const arrowSpeed = 100;
 
                 arrowSprite.x = sprite.x;
@@ -354,8 +359,6 @@ namespace dungeon {
                                     break;
                                 }
                             }
-
-                            console.log("Expand")
                         }
 
 
@@ -377,6 +380,22 @@ namespace dungeon {
                 };
                 this.triggers.push(t);
             });
+        }
+
+        protected createEnemy(col: number, row: number) {
+            const e = new Enemy(this.player.sprite);
+            this.trackedSprites.push(e.sprite);
+            e.sprite.x  = ((col + 1) << 4) + 8;
+            e.sprite.y = ((row + 1) << 4) + 8;
+        }
+
+        protected cleanUpSprites() {
+            if (this.trackedSprites) {
+                for (let i = 0; i < this.trackedSprites.length; i++) {
+                    this.trackedSprites[i].destroy();
+                }
+            }
+            this.trackedSprites = [];
         }
     }
 
