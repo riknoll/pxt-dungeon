@@ -205,6 +205,7 @@ namespace dungeon {
                 this.sprite.x = (this.lastColumn << 4) + 8;
                 this.sprite.y = (this.lastRow << 4) + 8;
                 this.addEffect(new InvulnerableEffect(this));
+                this.sprite.setFlag(SpriteFlag.Ghost, false);
             }
         }
 
