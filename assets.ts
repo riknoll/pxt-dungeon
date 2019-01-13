@@ -16,7 +16,7 @@ namespace assets {
         c c c c c c c 1 c c c c c c c c
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
-        `;
+    `;
     export const arrowLauncherEast = img`
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
@@ -34,7 +34,7 @@ namespace assets {
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
-        `;
+    `;
     export const arrowLauncherNorth = img`
         c c c c c c c c c c c c c c c c
         c c c c c c c 1 c c c c c c c c
@@ -52,7 +52,7 @@ namespace assets {
         c c c c c 1 1 1 1 1 c c c c c c
         c c c c c c 1 c 1 c c c c c c c
         c c c c c c c c c c c c c c c c
-        `;
+    `;
     export const arrowLauncherWest = img`
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
@@ -70,7 +70,7 @@ namespace assets {
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
         c c c c c c c c c c c c c c c c
-        `;
+    `;
 
     export const launcher = [arrowLauncherNorth, arrowLauncherEast, arrowLauncherSouth, arrowLauncherWest];
 
@@ -92,7 +92,7 @@ namespace assets {
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
-        `;
+    `;
     export const arrowWest = img`
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
@@ -110,7 +110,7 @@ namespace assets {
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
-        `;
+    `;
     export const arrowNorth = img`
         . . . . . . . f . . . . . . . .
         . . . . . . f 1 f . . . . . . .
@@ -128,7 +128,7 @@ namespace assets {
         . . . . . . f e f . . . . . . .
         . . . . . . f e f . . . . . . .
         . . . . . . . f . . . . . . . .
-        `;
+    `;
     export const arrowSouth = img`
         . . . . . . . f . . . . . . . .
         . . . . . . f e f . . . . . . .
@@ -146,7 +146,7 @@ namespace assets {
         . . . . . f 1 1 1 f . . . . . .
         . . . . . . f 1 f . . . . . . .
         . . . . . . . f . . . . . . . .
-        `;
+    `;
 
     export const arrow = [arrowNorth, arrowEast, arrowSouth, arrowWest];
 
@@ -172,4 +172,13 @@ namespace assets {
     export const heroFall3 = image.ofBuffer(hex`e41010000000000000000000000000000000000000000000000000000000000000000000000000ff0f0000000000f0ccfc0000000000cfbcccff0f0000f0ccbbcbfc000000f0ccbbcbfc00000000cfbcccff0f000000f0ccfc000000000000ff0f0000000000000000000000000000000000000000000000000000000000000000000000`);
     export const heroFall4 = image.ofBuffer(hex`e410100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f000000000000000cfff0f00000000f0ccfc0000000000f0ccfc000000000000cfff0f0000000000f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000`);
     export const heroFall5 = image.ofBuffer(hex`e4101000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f00f000000000000cffc000000000000cffc000000000000f00f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000`);
+
+    export const swordNorthWest = image.ofBuffer(hex`e4111100000000000000000000000000c0cc00000000000000000000c0dd0c000000000000000000c0ddcd00101111110000000000dcdd1cb1bbbbbb0100000000c0ddcd1b111111000000000000dcdd0c000000000000000000c1ddcd000000000000000000b1dcdd0c00000000000000101bc0ddcd00000000000000101b00dcdd0c000000000000101b00c0ddcdb00c00000000101b0000dcddcb0000000000101b0000c0bd0c0000000000101b000000cbbc0000000000101b0000b00ccb0b0000000000010000c000b00c000000`);
+    export const swordSouth = image.ofBuffer(hex`e406140000c00000000000000000000000cccccccccccccccc0c0000ccccddddddddddddddcd0000ccccddddddddddddddcd000000cccccccccccccccc0c000000c000000000000000000000`);
+    export const swordSouthEast = image.ofBuffer(hex`e4111100bc00c0000000010000000000cb0bbc0000101b0000000000b0cc0b0000101b000000000000bccd0000101b0000000000c0dbdd0c00101b0000000000bcc0ddcd00101b00000000000000dcdd0c101b00000000000000c0ddcd101b0000000000000000dcddbc010000000000000000c0ddcd01000000000000000000dcdd0c000000000010111111cbddcd0000000000b1bbbbbb11dcdd0c000000001011111100c0ddcd00000000000000000000dccd00000000000000000000c0cc00000000000000000000000000000000`);
+    export const swordSouthWest = image.ofBuffer(hex`e4111100000000000000000000000000000000000000c0cc00000000000000000000dccd000000001011111100c0ddcd00000000b1bbbbbb11dcdd0c0000000010111111cbddcd000000000000000000dcdd0c0000000000000000c0ddcd010000000000000000dcddbc0100000000000000c0ddcd101b00000000000000dcdd0c101b0000000000bcc0ddcd00101b0000000000c0dbdd0c00101b000000000000bccd0000101b0000000000b0cc0b0000101b0000000000cb0bbc0000101b0000000000bc00c0000000010000000000`);
+    export const swordWest = image.ofBuffer(hex`e414060000cc0000c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00cccccc00c0cc0c0000cc000000cc0000`);
+    export const swordEast = image.ofBuffer(hex`e414060000cc000000cc0000c0cc0c00cccccc00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c00c0dd0c0000cc0000`);
+    export const swordNorth = image.ofBuffer(hex`e406140000000000000000000c000000c0cccccccccccccccc000000dcddddddddddddddcccc0000dcddddddddddddddcccc0000c0cccccccccccccccc00000000000000000000000c000000`);
+    export const swordNorthEast = image.ofBuffer(hex`e41111000000010000c000b00c00000000101b0000b00ccb0b00000000101b000000cbbc0000000000101b0000c0bd0c0000000000101b0000dcddcb0000000000101b00c0ddcdb00c00000000101b00dcdd0c000000000000101bc0ddcd0000000000000000b1dcdd0c0000000000000000c1ddcd000000000000000000dcdd0c0000000000000000c0ddcd1b1111110000000000dcdd1cb1bbbbbb01000000c0ddcd001011111100000000c0dd0c000000000000000000c0cc00000000000000000000000000000000000000000000`);
 }

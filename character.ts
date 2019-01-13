@@ -24,7 +24,7 @@ namespace dungeon {
         NoMovement = Attacking | Falling
     }
 
-    const attackAnimationInterval = 100;
+    const attackAnimationInterval = 75;
     const walkSpeed = 100;
     const enemySpeed = 40;
 
@@ -93,6 +93,7 @@ namespace dungeon {
         sprite: Sprite;
         flags: CharacterFlag;
         effects: Effect[];
+        sword: Sword;
 
         invincible: boolean;
         animationEndTime: number;
@@ -113,6 +114,7 @@ namespace dungeon {
 
         init() {
             initAnimations(this.sprite);
+            this.sword = new Sword(this.sprite);
         }
 
         isRunning() {
@@ -131,6 +133,7 @@ namespace dungeon {
             }
             else if (controller.A.isPressed()) {
                 this.setFlags((this.flags & 0xf) | CharacterFlag.Attacking);
+                if (this.sword) this.sword.swing(this.facing())
             }
 
 
@@ -145,6 +148,13 @@ namespace dungeon {
 
             // Effects get applied last
             this.updateEffects(time);
+        }
+
+        facing() {
+            if (this.flags & CharacterFlag.FacingNorth) return Direction.North;
+            else if (this.flags & CharacterFlag.FacingEast) return Direction.East;
+            else if (this.flags & CharacterFlag.FacingSouth) return Direction.South;
+            else return Direction.West;
         }
 
         protected updateMovement() {
@@ -299,6 +309,117 @@ namespace dungeon {
         }
     }
 
+    const emptyImage = img`0`;
+    const swordInterval = 80;
+
+    export class Sword implements Updater {
+        owner: Sprite;
+        showSprite: Sprite;
+        hitSprite: Sprite;
+
+        protected swinging: boolean;
+        protected direction: Direction;
+        protected startTime: number;
+
+
+        constructor(owner: Sprite) {
+            this.owner = owner;
+            this.hitSprite = sprites.create(emptyImage, SpriteKind.Sword);
+
+            this.hitSprite.z = -999;
+
+            this.showSprite = sprites.create(emptyImage, SpriteKind.Sword);
+            this.showSprite.setFlag(SpriteFlag.Ghost, true);
+        }
+
+        swing(direction: Direction) {
+            if (this.swinging) return;
+
+            this.direction = direction;
+            this.swinging = true;
+            this.startTime = control.millis();
+
+            world.addUpdater(this);
+        }
+
+        update(time: number) {
+            if (!this.swinging) return;
+            const index = Math.idiv(time - this.startTime, swordInterval);
+
+            if (index === 0) {
+                this.hitSprite.setFlag(SpriteFlag.Ghost, true);
+                switch (this.direction) {
+                    case Direction.North:
+                        this.positionSprites(this.owner.x + 18, this.owner.y - 4, assets.swordEast);
+                        break;
+                    case Direction.East:
+                        this.positionSprites(this.owner.x + 6, this.owner.y - 17, assets.swordNorth);
+                        break;
+                    case Direction.South:
+                        this.positionSprites(this.owner.x - 18, this.owner.y + 4, assets.swordWest);
+                        break;
+                    case Direction.West:
+                        this.positionSprites(this.owner.x - 6, this.owner.y - 17, assets.swordNorth);
+                        break;
+                }
+            }
+            else if (index === 1) {
+                this.hitSprite.setFlag(SpriteFlag.Ghost, false);
+                switch (this.direction) {
+                    case Direction.North:
+                        this.positionSprites(this.owner.x + 17, this.owner.y - 15, assets.swordNorthEast);
+                        break;
+                    case Direction.East:
+                        this.positionSprites(this.owner.x + 17, this.owner.y - 15, assets.swordNorthEast);
+                        break;
+                    case Direction.South:
+                        this.positionSprites(this.owner.x - 17, this.owner.y + 15, assets.swordSouthWest);
+                        break;
+                    case Direction.West:
+                        this.positionSprites(this.owner.x - 17, this.owner.y - 15, assets.swordNorthWest);
+                        break;
+                }
+            }
+            else if (index === 2) {
+                this.hitSprite.setFlag(SpriteFlag.Ghost, false);
+                switch (this.direction) {
+                    case Direction.North:
+                        this.positionSprites(this.owner.x + 4, this.owner.y - 18, assets.swordNorth);
+                        break;
+                    case Direction.East:
+                        this.positionSprites(this.owner.x + 20, this.owner.y - 2, assets.swordEast);
+                        break;
+                    case Direction.South:
+                        this.positionSprites(this.owner.x - 4, this.owner.y + 18, assets.swordSouth);
+                        break;
+                    case Direction.West:
+                        this.positionSprites(this.owner.x - 20, this.owner.y - 2, assets.swordWest);
+                        break;
+                }
+            }
+            else {
+                this.hitSprite.setFlag(SpriteFlag.Ghost, true);
+                this.positionSprites(0, 0, emptyImage)
+                this.swinging = false;
+            }
+        }
+
+        protected positionSprites(x: number, y: number, image: Image) {
+            this.hitSprite.x = x;
+            this.hitSprite.y = y;
+            this.hitSprite.setImage(image);
+
+            this.showSprite.x = x;
+            this.showSprite.y = y;
+            this.showSprite.setImage(image);
+        }
+
+        isRunning() {
+            return this.swinging;
+        }
+    }
+
+
     let playerAnimations: animation.Animation[];
     let enemyAnimations: animation.Animation[];
 
@@ -360,30 +481,31 @@ namespace dungeon {
 
             const attackEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Attacking, attackAnimationInterval);
             attackEast.frames = [
-                sprites.castle.heroSideAttackRight1,
-                sprites.castle.heroSideAttackRight2,
-                sprites.castle.heroSideAttackRight3,
-                sprites.castle.heroSideAttackRight4
+                sprites.castle.heroWalkSideRight1,
+                sprites.castle.heroWalkSideRight2,
             ];
             playerAnimations.push(attackEast);
 
             const attackWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Attacking, attackAnimationInterval);
             attackWest.frames = [
-                sprites.castle.heroSideAttackLeft1,
-                sprites.castle.heroSideAttackLeft2,
-                sprites.castle.heroSideAttackLeft3,
-                sprites.castle.heroSideAttackLeft4
+                sprites.castle.heroWalkSideLeft1,
+                sprites.castle.heroWalkSideLeft2,
             ];
             playerAnimations.push(attackWest);
 
             const attackSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Attacking, attackAnimationInterval);
             attackSouth.frames = [
-                sprites.castle.heroFrontAttack1,
-                sprites.castle.heroFrontAttack2,
-                sprites.castle.heroFrontAttack3,
-                sprites.castle.heroFrontAttack4
+                sprites.castle.heroWalkFront1,
+                sprites.castle.heroWalkFront2,
             ];
             playerAnimations.push(attackSouth);
+
+            const attackNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Attacking, attackAnimationInterval);
+            attackNorth.frames = [
+                sprites.castle.heroWalkBack1,
+                sprites.castle.heroWalkBack2,
+            ];
+            playerAnimations.push(attackNorth);
         }
 
         for (let i = 0; i < playerAnimations.length; i++) {

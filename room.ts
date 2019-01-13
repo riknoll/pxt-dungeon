@@ -4,6 +4,7 @@ namespace dungeon {
 
     export enum SpriteKind {
         Player,
+        Sword,
         Arrow,
         Launcher,
         SpikeTrap
@@ -107,7 +108,7 @@ namespace dungeon {
         loadRoom(room: Room, enteringFrom?: Direction) {
             this.cleanUpSprites(); 
             this.triggers = [];
-            this.updaters = [this.player];
+            this.updaters = [this.player, this.player.sword];
             scene.setBackgroundColor(13)
 
             let tilemap = image.create(room.width + 2, room.height + 2);
