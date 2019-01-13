@@ -6,6 +6,7 @@ namespace dungeon {
         Player,
         Sword,
         Arrow,
+        Enemy,
         Launcher,
         SpikeTrap
     }
@@ -81,6 +82,22 @@ namespace dungeon {
         sprites.onOverlap(SpriteKind.Player, SpriteKind.SpikeTrap, function (player: Sprite, trap: Sprite) {
             world.player.takeDamage(trap.x, trap.y);
         })
+        sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (player: Sprite, enemy: Sprite) {
+            world.player.takeDamage(enemy.x, enemy.y);
+        })
+        sprites.onOverlap(SpriteKind.Sword, SpriteKind.Enemy, function (sword: Sprite, enemy: Sprite) {
+            let e: Character;
+            for (let i = 0;  i < world.enemies.length; i++) {
+                e = world.enemies[i];
+                if (e.sprite === enemy) break;
+            }
+            if (e) {
+                e.takeDamage(world.player.sprite.x, world.player.sprite.y);
+            }
+        })
+        sprites.onOverlap(SpriteKind.Sword, SpriteKind.Arrow, function (sword: Sprite, arrow: Sprite) {
+            arrow.destroy();
+        })
     }
 
     export interface Updater {
@@ -93,6 +110,7 @@ namespace dungeon {
         triggers: Trigger[];
         updaters: Updater[];
         trackedSprites: Sprite[];
+        enemies: Character[];
 
         map: Image;
 
@@ -109,6 +127,7 @@ namespace dungeon {
             this.cleanUpSprites(); 
             this.triggers = [];
             this.updaters = [this.player, this.player.sword];
+            this.enemies = [];
             scene.setBackgroundColor(13)
 
             let tilemap = image.create(room.width + 2, room.height + 2);
@@ -388,6 +407,7 @@ namespace dungeon {
             this.trackedSprites.push(e.sprite);
             e.sprite.x  = ((col + 1) << 4) + 8;
             e.sprite.y = ((row + 1) << 4) + 8;
+            this.enemies.push(e);
         }
 
         protected cleanUpSprites() {

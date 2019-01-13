@@ -66,18 +66,24 @@ namespace dungeon {
 
     export class InvulnerableEffect extends Effect {
         private lastImage: Image;
-        constructor(target: Character) {
+
+        private color1: number;
+        private color2: number;
+
+        constructor(target: Character, c1 = 2, c2 = 1) {
             super(target);
 
             this.endTime = control.millis() + 500;
             this.target.invincible = true;
+            this.color1 = c1;
+            this.color2 = c2;
         }
 
         onUpdate(time: number) {
             if (Math.idiv(time, 100) % 2) {
                 this.lastImage = this.target.sprite.image;
                 let i = this.lastImage.clone();
-                i.replace(2, 1)
+                i.replace(this.color1, this.color2)
                 this.target.sprite.setImage(i);
             }
         }
@@ -104,7 +110,6 @@ namespace dungeon {
         constructor(s: Sprite) {
             this.sprite = s;
             this.effects = [];
-
             this.init();
 
             world.addUpdater(this)
@@ -131,9 +136,8 @@ namespace dungeon {
                 // Keep the direction, but remove the state
                 this.flags = this.flags & 0xf;
             }
-            else if (controller.A.isPressed()) {
-                this.setFlags((this.flags & 0xf) | CharacterFlag.Attacking);
-                if (this.sword) this.sword.swing(this.facing())
+            else {
+                this.updateAttack();
             }
 
 
@@ -155,6 +159,13 @@ namespace dungeon {
             else if (this.flags & CharacterFlag.FacingEast) return Direction.East;
             else if (this.flags & CharacterFlag.FacingSouth) return Direction.South;
             else return Direction.West;
+        }
+
+        protected updateAttack() {
+            if (controller.A.isPressed()) {
+                this.setFlags((this.flags & 0xf) | CharacterFlag.Attacking);
+                if (this.sword) this.sword.swing(this.facing())
+            }
         }
 
         protected updateMovement() {
@@ -267,14 +278,33 @@ namespace dungeon {
 
     export class Enemy extends Character {
         protected target: Sprite;
+        health: number;
 
         constructor(target: Sprite) {
-            super(sprites.create(sprites.castle.skellyFront, SpriteKind.Arrow));
+            super(sprites.create(sprites.castle.skellyFront, SpriteKind.Enemy));
             this.target = target;
+            this.health = 2;
         }
 
         init() {
             initSkelly(this.sprite);
+        }
+
+        takeDamage(sourceX: number, sourceY: number) {
+            if (!this.invincible) {
+                this.health--;
+                if (this.health) {
+                    this.addEffect(new BumpEffect(this, sourceX, sourceY));
+                    this.addEffect(new InvulnerableEffect(this, 15, 14));
+                }
+                else {
+                    this.sprite.destroy();
+                }
+            }
+        }
+
+        protected updateAttack() {
+            // just bump
         }
 
         protected updateMovement() {
@@ -328,6 +358,8 @@ namespace dungeon {
 
             this.hitSprite.z = -999;
 
+            // The hitsprite is the one used for collisions, but the tilemap will
+            // push it around so it hides under the map and this one shows up
             this.showSprite = sprites.create(emptyImage, SpriteKind.Sword);
             this.showSprite.setFlag(SpriteFlag.Ghost, true);
         }
@@ -347,6 +379,8 @@ namespace dungeon {
             const index = Math.idiv(time - this.startTime, swordInterval);
 
             if (index === 0) {
+                // For the first index, the sprite needs to be a ghost. Otherwise it
+                // will get caught on the tilemap when it moves from off screen
                 this.hitSprite.setFlag(SpriteFlag.Ghost, true);
                 switch (this.direction) {
                     case Direction.North:
