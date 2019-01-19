@@ -13,7 +13,8 @@
         "room.ts",
         "assets.ts",
         "triggers.ts",
-        "keyframes.ts"
+        "keyframes.ts",
+        "dither.ts"
     ],
     "testFiles": [
         "test.ts"
