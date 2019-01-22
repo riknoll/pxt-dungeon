@@ -41,32 +41,6 @@ namespace dungeon {
         DoorWest
     }
 
-    function initTiles() {
-        scene.setTile(TileInternal.Floor, sprites.castle.tilePath5);
-        scene.setTile(TileInternal.Hole, img`
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-        `);
-        scene.setTile(TileInternal.Spike, sprites.castle.shrub);
-
-        scene.setTile(TileInternal.Wall, sprites.castle.rock1, true);
-        scene.setTile(TileInternal.Object, sprites.castle.rock0, true);
-    }
-
     function initPlayer() {
         const s = sprites.create(sprites.castle.heroWalkFront1, SpriteKind.Player);
         world.player = new Character(s);
@@ -87,7 +61,7 @@ namespace dungeon {
         })
         sprites.onOverlap(SpriteKind.Sword, SpriteKind.Enemy, function (sword: Sprite, enemy: Sprite) {
             let e: Character;
-            for (let i = 0;  i < world.enemies.length; i++) {
+            for (let i = 0; i < world.enemies.length; i++) {
                 e = world.enemies[i];
                 if (e.sprite === enemy) break;
             }
@@ -124,18 +98,18 @@ namespace dungeon {
         }
 
         loadRoom(room: Room, enteringFrom?: Direction) {
-            this.cleanUpSprites(); 
+            this.cleanUpSprites();
             this.triggers = [];
             this.updaters = [this.player, this.player.sword];
             this.enemies = [];
             scene.setBackgroundColor(13)
 
-            let tilemap = image.create(room.width + 2, room.height + 2);
-            tilemap.fill(TileInternal.Wall);
+            let tilemap = room.map;
+            let roomObjects = room.data;
 
-            for (let col = 0; col < room.width; col++) {
-                for (let row = 0; row < room.height; row++) {
-                    const data: RoomTile = room.data.getPixel(col, row);
+            for (let col = 0; col < roomObjects.width; col++) {
+                for (let row = 0; row < roomObjects.height; row++) {
+                    const data: RoomTile = roomObjects.getPixel(col, row);
 
                     let tile: TileInternal;
 
@@ -159,9 +133,6 @@ namespace dungeon {
                         case RoomTile.SpikeTrap:
                             tile = TileInternal.Floor;
                             this.createSpikeTrap(col, row);
-                            break;
-                        case RoomTile.Door:
-                            tile = TileInternal.DoorNorth;
                             break;
                         case RoomTile.ArrowNorth:
                             tile = TileInternal.Object;
@@ -193,7 +164,7 @@ namespace dungeon {
                             break;
                     }
 
-                    tilemap.setPixel(col + 1, row + 1, tile);
+                    // tilemap.setPixel(col + 1, row + 1, tile);
                 }
             }
 
@@ -209,10 +180,25 @@ namespace dungeon {
 
             if (enteringFrom != undefined) {
                 // Move the player to the doorway
-                const col = getDoorCol(enteringFrom, tilemap.width);
-                const row = getDoorRow(enteringFrom, tilemap.height);
-                this.player.sprite.x = (col << 4) + 8;
-                this.player.sprite.y = (row << 4) + 8
+                
+                switch (enteringFrom) {
+                    case Direction.North:
+                        this.player.sprite.x = screen.width >> 1;
+                        this.player.sprite.y = 9;
+                        break;
+                    case Direction.East:
+                        this.player.sprite.x = screen.width - 9;
+                        this.player.sprite.y = (screen.height - 8) >> 1;
+                        break;
+                    case Direction.South:
+                        this.player.sprite.x = screen.width >> 1;
+                        this.player.sprite.y = screen.height - 9;
+                        break;
+                    case Direction.West:
+                        this.player.sprite.x = 9;
+                        this.player.sprite.y = (screen.height - 8) >> 1;
+                        break;
+                }
             }
         }
 
@@ -321,15 +307,24 @@ namespace dungeon {
         }
 
         protected createDoorway(direction: Direction, next: Room, tilemap: Image) {
-            const col = getDoorCol(direction, tilemap.width);
-            const row = getDoorRow(direction, tilemap.height);
-
-            const trigger = new TileTrigger(col, row);
+            let trigger: TileTrigger;
+            switch (direction) {
+                case Direction.North:
+                    trigger = new TileTrigger((ROOM_WIDTH >> 1) - 1, 0, 2, 1);
+                    break;
+                case Direction.East:
+                    trigger = new TileTrigger(ROOM_WIDTH - 1, ROOM_HEIGHT >> 1, 1, 2);
+                    break;
+                case Direction.South:
+                    trigger = new TileTrigger((ROOM_WIDTH >> 1) - 1, ROOM_HEIGHT - 1, 2, 1);
+                    break;
+                case Direction.West:
+                    trigger = new TileTrigger(0, ROOM_HEIGHT >> 1, 1, 2);
+                    break;
+            }
             trigger.action = () => {
                 this.loadRoom(next, getOpposite(direction));
             }
-
-            tilemap.setPixel(col, row, TileInternal.DoorNorth);
 
             this.triggers.push(trigger);
         }
@@ -405,7 +400,7 @@ namespace dungeon {
         protected createEnemy(col: number, row: number) {
             const e = new Enemy(this.player.sprite);
             this.trackedSprites.push(e.sprite);
-            e.sprite.x  = ((col + 1) << 4) + 8;
+            e.sprite.x = ((col + 1) << 4) + 8;
             e.sprite.y = ((row + 1) << 4) + 8;
             this.enemies.push(e);
         }
@@ -424,39 +419,12 @@ namespace dungeon {
         return col + row * width;
     }
 
-    function getDoorCol(direction: Direction, width: number) {
-        switch (direction) {
-            case Direction.South:
-            case Direction.North:
-                return width >> 1;
-                break;
-            case Direction.East:
-                return width - 1;
-            case Direction.West:
-                return 0;
-        }
-    }
-
-    function getDoorRow(direction: Direction, height: number) {
-        switch (direction) {
-            case Direction.East:
-            case Direction.West:
-                return height >> 1;
-                break;
-            case Direction.North:
-                return 0;
-            case Direction.South:
-                return height - 1;
-        }
-    }
-
     export let world: World;
 
     function init() {
         if (world) return;
 
         world = new World();
-        initTiles();
         initPlayer();
         initHandlers();
 
@@ -472,27 +440,6 @@ namespace dungeon {
                     }
                 }
             })
-        }
-    }
-
-    export class Room {
-        north: Room;
-        east: Room;
-        south: Room;
-        west: Room;
-
-        data: Image;
-
-        constructor(data: Image) {
-            this.data = data;
-        }
-
-        get width() {
-            return this.data.width;
-        }
-
-        get height() {
-            return this.data.height;
         }
     }
 

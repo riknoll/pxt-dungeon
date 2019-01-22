@@ -384,7 +384,7 @@ namespace dungeon {
                 this.hitSprite.setFlag(SpriteFlag.Ghost, true);
                 switch (this.direction) {
                     case Direction.North:
-                        this.positionSprites(this.owner.x + 18, this.owner.y - 4, assets.swordEast);
+                        this.positionSprites(this.owner.x + 20, this.owner.y - 4, assets.swordEast);
                         break;
                     case Direction.East:
                         this.positionSprites(this.owner.x + 6, this.owner.y - 17, assets.swordNorth);

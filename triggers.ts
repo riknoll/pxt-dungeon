@@ -21,10 +21,11 @@ namespace dungeon {
         width: number;
         height: number;
 
-        protected firstCheck = true;
+        protected firstCheck: boolean;
 
         constructor(col: number, row: number, width = 1, height = 1) {
             super();
+            this.firstCheck = true;
             this.col = col;
             this.row = row;
             this.width = width;
