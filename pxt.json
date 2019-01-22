@@ -1,6 +1,6 @@
 {
     "name": "pxt-dungeon",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "",
     "dependencies": {
         "device": "*",
@@ -14,7 +14,8 @@
         "assets.ts",
         "triggers.ts",
         "keyframes.ts",
-        "generate.ts"
+        "generate.ts",
+        "dither.ts"
     ],
     "testFiles": [
         "test.ts"
