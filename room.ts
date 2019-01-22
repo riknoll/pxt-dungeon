@@ -87,7 +87,7 @@ namespace dungeon {
         })
         sprites.onOverlap(SpriteKind.Sword, SpriteKind.Enemy, function (sword: Sprite, enemy: Sprite) {
             let e: Character;
-            for (let i = 0;  i < world.enemies.length; i++) {
+            for (let i = 0; i < world.enemies.length; i++) {
                 e = world.enemies[i];
                 if (e.sprite === enemy) break;
             }
@@ -124,7 +124,7 @@ namespace dungeon {
         }
 
         loadRoom(room: Room, enteringFrom?: Direction) {
-            this.cleanUpSprites(); 
+            this.cleanUpSprites();
             this.triggers = [];
             this.updaters = [this.player, this.player.sword];
             this.enemies = [];
@@ -405,7 +405,7 @@ namespace dungeon {
         protected createEnemy(col: number, row: number) {
             const e = new Enemy(this.player.sprite);
             this.trackedSprites.push(e.sprite);
-            e.sprite.x  = ((col + 1) << 4) + 8;
+            e.sprite.x = ((col + 1) << 4) + 8;
             e.sprite.y = ((row + 1) << 4) + 8;
             this.enemies.push(e);
         }
