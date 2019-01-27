@@ -321,6 +321,295 @@ namespace projectImages {
     // export const tiles = [dungeon_tiles_0, dungeon_tiles_1, dungeon_tiles_2, dungeon_tiles_3, dungeon_tiles_4, dungeon_tiles_5, dungeon_tiles_6, dungeon_tiles_7, dungeon_tiles_8, dungeon_tiles_9, dungeon_tiles_10, dungeon_tiles_11, dungeon_tiles_12, dungeon_tiles_13, dungeon_tiles_14, dungeon_tiles_15, dungeon_tiles_16, dungeon_tiles_17, dungeon_tiles_18, dungeon_tiles_19, dungeon_tiles_20, dungeon_tiles_21, dungeon_tiles_22, dungeon_tiles_23, dungeon_tiles_24, dungeon_tiles_25, dungeon_tiles_26, dungeon_tiles_27, dungeon_tiles_28, dungeon_tiles_29, dungeon_tiles_30, dungeon_tiles_31, dungeon_tiles_32, dungeon_tiles_33, dungeon_tiles_34, dungeon_tiles_35, dungeon_tiles_36, dungeon_tiles_37, dungeon_tiles_38, dungeon_tiles_39, dungeon_tiles_40, dungeon_tiles_41, dungeon_tiles_42, dungeon_tiles_43, dungeon_tiles_44, dungeon_tiles_45, dungeon_tiles_46, dungeon_tiles_47, dungeon_tiles_48, dungeon_tiles_49, dungeon_tiles_50, dungeon_tiles_51, dungeon_tiles_52, dungeon_tiles_53, dungeon_tiles_54, dungeon_tiles_55, dungeon_tiles_56, dungeon_tiles_57, dungeon_tiles_58, dungeon_tiles_59, dungeon_tiles_60, dungeon_tiles_61, dungeon_tiles_62, dungeon_tiles_63, dungeon_tiles_64, dungeon_tiles_65,];
 
 
+    export function makeSpikeTrap() {
+        const kf = new KeyFrameAnimation();
+        kf.addStep(0, assets.spikeTrap1);
+        kf.addStep(500, assets.spikeTrap2);
+        kf.addStep(510, assets.spikeTrap3);
+        kf.addStep(520, assets.spikeTrap4);
+        kf.addStep(530, assets.spikeTrap5);
+        kf.addStep(540, assets.spikeTrap4);
+        kf.addStep(550, assets.spikeTrap3);
+        kf.addStep(560, assets.spikeTrap2);
+        kf.addStep(570, assets.spikeTrap1);
+        kf.addStep(580, assets.spikeTrap0);
+        kf.addStep(600, null);
+
+        kf.target = sprites.create(assets.spikeTrap0, SpriteKind.SpikeTrap);
+        kf.target.setFlag(SpriteFlag.Ghost, true);
+
+        return kf;
+    }
+
+    export function makeFallingAnimation() {
+        const kf = new KeyFrameAnimation();
+        kf.addStep(0, sprites.castle.heroWalkFront1);
+        kf.addStep(50, assets.heroFall0);
+        kf.addStep(100, assets.heroFall1);
+        kf.addStep(150, assets.heroFall2);
+        kf.addStep(200, assets.heroFall3);
+        kf.addStep(250, assets.heroFall4);
+        kf.addStep(300, assets.heroFall5);
+        kf.addStep(350, null);
+
+        return kf;
+    }
+
+    export let playerAnimations: animation.Animation[];
+    export let enemyAnimations: animation.Animation[];
+
+    export function initAnimations(sprite: Sprite) {
+        if (!playerAnimations) {
+            playerAnimations = [];
+            const walkInterval = 100;
+            const walkEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Walking, walkInterval);
+            walkEast.frames = [
+                sprites.castle.heroWalkSideRight1,
+                sprites.castle.heroWalkSideRight2,
+                sprites.castle.heroWalkSideRight3,
+                sprites.castle.heroWalkSideRight4
+            ];
+            playerAnimations.push(walkEast);
+
+            const walkWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Walking, walkInterval);
+            walkWest.frames = [
+                sprites.castle.heroWalkSideLeft1,
+                sprites.castle.heroWalkSideLeft2,
+                sprites.castle.heroWalkSideLeft3,
+                sprites.castle.heroWalkSideLeft4
+            ];
+            playerAnimations.push(walkWest);
+
+            const walkNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Walking, walkInterval);
+            walkNorth.frames = [
+                sprites.castle.heroWalkBack1,
+                sprites.castle.heroWalkBack2,
+                sprites.castle.heroWalkBack3,
+                sprites.castle.heroWalkBack4
+            ];
+            playerAnimations.push(walkNorth);
+
+            const walkSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Walking, walkInterval);
+            walkSouth.frames = [
+                sprites.castle.heroWalkFront1,
+                sprites.castle.heroWalkFront2,
+                sprites.castle.heroWalkFront3,
+                sprites.castle.heroWalkFront4
+            ];
+            playerAnimations.push(walkSouth);
+
+            const idleEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Idle, walkInterval);
+            idleEast.frames = [walkEast.frames[0]];
+            playerAnimations.push(idleEast);
+
+            const idleWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Idle, walkInterval);
+            idleWest.frames = [walkWest.frames[0]];
+            playerAnimations.push(idleWest);
+
+            const idleNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Idle, walkInterval);
+            idleNorth.frames = [walkNorth.frames[0]];
+            playerAnimations.push(idleNorth);
+
+            const idleSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Idle, walkInterval);
+            idleSouth.frames = [walkSouth.frames[0]];
+            playerAnimations.push(idleSouth);
+
+            const attackEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Attacking, attackAnimationInterval);
+            attackEast.frames = [
+                sprites.castle.heroWalkSideRight1,
+                sprites.castle.heroWalkSideRight2,
+            ];
+            playerAnimations.push(attackEast);
+
+            const attackWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Attacking, attackAnimationInterval);
+            attackWest.frames = [
+                sprites.castle.heroWalkSideLeft1,
+                sprites.castle.heroWalkSideLeft2,
+            ];
+            playerAnimations.push(attackWest);
+
+            const attackSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Attacking, attackAnimationInterval);
+            attackSouth.frames = [
+                sprites.castle.heroWalkFront1,
+                sprites.castle.heroWalkFront2,
+            ];
+            playerAnimations.push(attackSouth);
+
+            const attackNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Attacking, attackAnimationInterval);
+            attackNorth.frames = [
+                sprites.castle.heroWalkBack1,
+                sprites.castle.heroWalkBack2,
+            ];
+            playerAnimations.push(attackNorth);
+        }
+
+        for (let i = 0; i < playerAnimations.length; i++) {
+            animation.attachAnimation(sprite, playerAnimations[i]);
+        }
+    }
+
+    export function initSkelly(sprite: Sprite) {
+        if (!enemyAnimations) {
+            enemyAnimations = [];
+            const walkInterval = 100;
+            const walkEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Walking, walkInterval);
+            walkEast.frames = [
+                sprites.castle.skellyWalkRight1,
+                sprites.castle.skellyWalkRight2
+            ];
+            enemyAnimations.push(walkEast);
+
+            const walkWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Walking, walkInterval);
+            walkWest.frames = [
+                sprites.castle.skellyWalkLeft1,
+                sprites.castle.skellyWalkLeft2
+            ];
+            enemyAnimations.push(walkWest);
+
+            // const walkNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Walking, walkInterval);
+            // walkNorth.frames = [
+            //     sprites.castle.skellyWalkBack1,
+            //     sprites.castle.heroWalkBack2,
+            //     sprites.castle.heroWalkBack3,
+            //     sprites.castle.heroWalkBack4
+            // ];
+            // enemyAnimations.push(walkNorth);
+
+            const walkSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Walking, walkInterval);
+            walkSouth.frames = [
+                sprites.castle.skellyWalkFront1,
+                sprites.castle.skellyWalkFront2,
+                sprites.castle.skellyWalkFront3
+            ];
+            enemyAnimations.push(walkSouth);
+
+            const idleEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Idle, walkInterval);
+            idleEast.frames = [walkEast.frames[0]];
+            enemyAnimations.push(idleEast);
+
+            const idleWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Idle, walkInterval);
+            idleWest.frames = [walkWest.frames[0]];
+            enemyAnimations.push(idleWest);
+
+            // const idleNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Idle, walkInterval);
+            // idleNorth.frames = [walkNorth.frames[0]];
+            // enemyAnimations.push(idleNorth);
+
+            const idleSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Idle, walkInterval);
+            idleSouth.frames = [walkSouth.frames[0]];
+            enemyAnimations.push(idleSouth);
+
+            const attackEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Attacking, attackAnimationInterval);
+            attackEast.frames = [
+                sprites.castle.skellyAttackRight1,
+                sprites.castle.skellyAttackRight2
+            ];
+            enemyAnimations.push(attackEast);
+
+            const attackWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Attacking, attackAnimationInterval);
+            attackWest.frames = [
+                sprites.castle.skellyAttackLeft1,
+                sprites.castle.skellyAttackLeft2
+            ];
+            enemyAnimations.push(attackWest);
+
+            const attackSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Attacking, attackAnimationInterval);
+            attackSouth.frames = [
+                sprites.castle.skellyAttackFront1,
+                sprites.castle.skellyAttackFront2,
+                sprites.castle.skellyAttackFront3,
+                sprites.castle.skellyAttackFront4
+            ];
+            enemyAnimations.push(attackSouth);
+        }
+
+        for (let i = 0; i < enemyAnimations.length; i++) {
+            animation.attachAnimation(sprite, enemyAnimations[i]);
+        }
+    }
+
+    export function initSkellyAnimations(sprite: Sprite) {
+        const walkInterval = 100;
+        const walkEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Walking, walkInterval);
+        walkEast.frames = [
+            sprites.castle.skellyWalkRight1,
+            sprites.castle.skellyWalkRight2,
+            sprites.castle.heroWalkSideRight3,
+            sprites.castle.heroWalkSideRight4
+        ];
+        animation.attachAnimation(sprite, walkEast);
+
+        const walkWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Walking, walkInterval);
+        walkWest.frames = [
+            sprites.castle.heroWalkSideLeft1,
+            sprites.castle.heroWalkSideLeft2,
+            sprites.castle.heroWalkSideLeft3,
+            sprites.castle.heroWalkSideLeft4
+        ];
+        animation.attachAnimation(sprite, walkWest);
+
+        const walkNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Walking, walkInterval);
+        walkNorth.frames = [
+            sprites.castle.heroWalkBack1,
+            sprites.castle.heroWalkBack2,
+            sprites.castle.heroWalkBack3,
+            sprites.castle.heroWalkBack4
+        ];
+        animation.attachAnimation(sprite, walkNorth);
+
+        const walkSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Walking, walkInterval);
+        walkSouth.frames = [
+            sprites.castle.heroWalkFront1,
+            sprites.castle.heroWalkFront2,
+            sprites.castle.heroWalkFront3,
+            sprites.castle.heroWalkFront4
+        ];
+        animation.attachAnimation(sprite, walkSouth);
+
+        const idleEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Idle, walkInterval);
+        idleEast.frames = [walkEast.frames[0]];
+        animation.attachAnimation(sprite, idleEast);
+
+        const idleWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Idle, walkInterval);
+        idleWest.frames = [walkWest.frames[0]];
+        animation.attachAnimation(sprite, idleWest);
+
+        const idleNorth = animation.createAnimation(CharacterFlag.FacingNorth | CharacterFlag.Idle, walkInterval);
+        idleNorth.frames = [walkNorth.frames[0]];
+        animation.attachAnimation(sprite, idleNorth);
+
+        const idleSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Idle, walkInterval);
+        idleSouth.frames = [walkSouth.frames[0]];
+        animation.attachAnimation(sprite, idleSouth);
+
+        const attackEast = animation.createAnimation(CharacterFlag.FacingEast | CharacterFlag.Attacking, attackAnimationInterval);
+        attackEast.frames = [
+            sprites.castle.heroSideAttackRight1,
+            sprites.castle.heroSideAttackRight2,
+            sprites.castle.heroSideAttackRight3,
+            sprites.castle.heroSideAttackRight4
+        ];
+        animation.attachAnimation(sprite, attackEast);
+
+        const attackWest = animation.createAnimation(CharacterFlag.FacingWest | CharacterFlag.Attacking, attackAnimationInterval);
+        attackWest.frames = [
+            sprites.castle.heroSideAttackLeft1,
+            sprites.castle.heroSideAttackLeft2,
+            sprites.castle.heroSideAttackLeft3,
+            sprites.castle.heroSideAttackLeft4
+        ];
+        animation.attachAnimation(sprite, attackWest);
+
+        const attackSouth = animation.createAnimation(CharacterFlag.FacingSouth | CharacterFlag.Attacking, attackAnimationInterval);
+        attackSouth.frames = [
+            sprites.castle.heroFrontAttack1,
+            sprites.castle.heroFrontAttack2,
+            sprites.castle.heroFrontAttack3,
+            sprites.castle.heroFrontAttack4
+        ];
+        animation.attachAnimation(sprite, attackSouth);
+    }
+
     export function init() {
 
     }

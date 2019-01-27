@@ -17,75 +17,22 @@ namespace dungeon {
         Pit
     }
 
-    /**
-     * Creates an empty room with walls on all sides
-     */
-    export function emptyWalledRoom() {
-        const room = image.create(10, 7);
-
-        // Draw walls
-        room.drawLine(0, 0, room.width - 1, 0, TileType.WallNorth)
-        room.drawLine(0, room.height - 1, room.width - 1, room.height - 1, TileType.WallSouth)
-        room.drawLine(0, 0, 0, room.height - 1, TileType.WallWest)
-        room.drawLine(room.width - 1, 0, room.width - 1, room.height - 1, TileType.WallEast)
-
-        // Set corners
-        room.setPixel(0, 0, TileType.WallNorthWest)
-        room.setPixel(0, room.height - 1, TileType.WallSouthWest)
-        room.setPixel(room.width - 1, 0, TileType.WallNorthEast)
-        room.setPixel(room.width - 1, room.height - 1, TileType.WallSouthEast)
-
-        return room;
-    }
-
-    export function placeDoor(room: Image, direction: RoomFlags) {
-        switch (direction) {
-            case RoomFlags.DoorNorth:
-                room.setPixel(room.width >> 1, 0, TileType.DoorNorthEast);
-                room.setPixel((room.width >> 1) - 1, 0, TileType.DoorNorthWest);
-                break;
-            case RoomFlags.DoorEast:
-                room.setPixel(room.width - 1, (room.height >> 1), TileType.DoorNorthEast);
-                room.setPixel(room.width - 1, (room.height >> 1) + 1, TileType.DoorSouthEast);
-                break;
-            case RoomFlags.DoorSouth:
-                room.setPixel((room.width >> 1), room.height - 1, TileType.DoorSouthEast);
-                room.setPixel((room.width >> 1) - 1, room.height - 1, TileType.DoorSouthWest);
-                break;
-            case RoomFlags.DoorWest:
-                room.setPixel(0, (room.height >> 1), TileType.DoorNorthWest);
-                room.setPixel(0, (room.height >> 1) + 1, TileType.DoorSouthWest);
-                break;
-
-        }
-    }
-
-    export function initTiles() {
-        scene.setTile(TileType.WallNorthWest, projectImages.dungeon_tiles_15, true);
-        scene.setTile(TileType.WallWest, projectImages.dungeon_tiles_16, true);
-        scene.setTile(TileType.WallSouthWest, projectImages.dungeon_tiles_17, true);
-        scene.setTile(TileType.WallNorth, projectImages.dungeon_tiles_21, true);
-        scene.setTile(TileType.Floor, projectImages.dungeon_tiles_22, false);
-        scene.setTile(TileType.WallSouth, projectImages.dungeon_tiles_23, true);
-        scene.setTile(TileType.WallNorthEast, projectImages.dungeon_tiles_27, true);
-        scene.setTile(TileType.WallEast, projectImages.dungeon_tiles_28, true);
-        scene.setTile(TileType.WallSouthEast, projectImages.dungeon_tiles_29, true);
-        scene.setTile(TileType.DoorSouthEast, projectImages.dungeon_tiles_51, false);
-        scene.setTile(TileType.DoorNorthEast, projectImages.dungeon_tiles_53, false);
-        scene.setTile(TileType.DoorSouthWest, projectImages.dungeon_tiles_63, false);
-        scene.setTile(TileType.DoorNorthWest, projectImages.dungeon_tiles_65, false);
-        scene.setTile(TileType.Obstacle, projectImages.dungeon_tiles_22, true);
-    }
-
-
-    enum RoomFlags {
-        DoorNorth = 1,
-        DoorEast = 1 << 1,
-        DoorSouth = 1 << 2,
-        DoorWest = 1 << 3,
-        Treasure = 1 << 4,
-        Key = 1 << 5,
-        EnemyTrap = 1 << 6
+    export enum Doors {
+        N = 1,
+        E = 2,
+        S = 4,
+        W = 8,
+        NE = N | E,
+        NW = N | W,
+        NS = N | S,
+        ES = E | S,
+        EW = E | W,
+        WS = W | S,
+        NES = NE | S,
+        NEW = NE | W,
+        NWS = NW | S,
+        EWS = EW | S,
+        NESW = NES | W
     }
 
     export class Map {
@@ -135,10 +82,6 @@ namespace dungeon {
         }
     }
 
-    class Point {
-        constructor(public x: number, public y: number, public color = 1) { }
-    }
-
     export function createMap(width: number, height: number, seed: number) {
         // Add two to height so that we have room for the entrance and exit
         const floor = new Map(width, height + 2, seed);
@@ -152,7 +95,6 @@ namespace dungeon {
         floor.setRoom((width >> 1), 0, RoomFlags.DoorSouth)
 
         // Make a bunch of random hallways
-        let room = 0;
         for (let c = 0; c < width; c++) {
             colors[c] = [];
             for (let r = 0; r < height; r++) {
@@ -247,38 +189,6 @@ namespace dungeon {
         }
     }
 
-    export function drawMap(floor: Map, dest: Image) {
-        let room: number;
-        for (let c = 0; c < floor.width; c++) {
-            for (let r = 0; r < floor.height; r++) {
-                room = floor.getRoom(c, r);
-                if (room) {
-                    dest.fillRect(1 + c * 6, 1 + r * 6, 4, 4, colorForRoom(floor.getRoomType(c, r)))
-                    if (room & RoomFlags.DoorNorth) {
-                        dest.fillRect(2 + c * 6, r * 6, 2, 1, 1)
-                    }
-                    if (room & RoomFlags.DoorEast) {
-                        dest.fillRect(5 + c * 6, 2 + r * 6, 1, 2, 1)
-                    }
-                    if (room & RoomFlags.DoorSouth) {
-                        dest.fillRect(2 + c * 6, 5 + r * 6, 2, 1, 1)
-                    }
-                    if (room & RoomFlags.DoorWest) {
-                        dest.fillRect(c * 6, 2 + r * 6, 1, 2, 1)
-                    }
-                }
-            }
-        }
-    }
-
-    function colorForRoom(f: RoomFlags) {
-        switch (f) {
-            case RoomFlags.Key: return 5;
-            case RoomFlags.Treasure: return 14;
-            default: return 3;
-        }
-    }
-
     export function addFeatures(floor: Map, numTreasures: number) {
         const toAdd: RoomFlags[] = [RoomFlags.Key];
         for (let i = 0; i < numTreasures; i++) toAdd.push(RoomFlags.Treasure);
@@ -308,67 +218,8 @@ namespace dungeon {
         }
     }
 
-    export const ROOM_WIDTH = 10;
-    export const ROOM_HEIGHT = 7;
-
-    export class Room {
-        fr: Math.FastRandom;
-
-        protected _data: Image;
-        protected _map: Image;
-
-        cleared: boolean;
-
-        north: Room;
-        east: Room;
-        south: Room;
-        west: Room;
-
-        constructor(seed: number, public layout: Doors) {
-            this.fr = new Math.FastRandom(seed);
-            this.cleared = false;
-        }
-
-        get data(): Image {
-            if (!this._data) this.generate();
-            return this._data;
-        }
-
-        get map(): Image {
-            if (!this._map) this.generate();
-            return this._map;
-        }
-
-        generate() {
-            this.fr.reset();
-
-            // The tilemap for this room
-            this._map = emptyWalledRoom();
-            placeDoors(this._map, this.layout);
-
-            // The interior of the room. Smaller because we don't need
-            // to store the border
-            this._data = getRoomInterior(this.layout & 0xf, this.fr);
-        }
-
-        unload() {
-            this._data = undefined;
-            this._map = undefined;
-        }
-    }
-
-    function placeDoors(room: Image, kind: Doors) {
-        if (kind & RoomFlags.DoorNorth) placeDoor(room, RoomFlags.DoorNorth);
-        if (kind & RoomFlags.DoorEast) placeDoor(room, RoomFlags.DoorEast);
-        if (kind & RoomFlags.DoorSouth) placeDoor(room, RoomFlags.DoorSouth);
-        if (kind & RoomFlags.DoorWest) placeDoor(room, RoomFlags.DoorWest);
-    }
-
-    export function lockUnlockDoors(lock: boolean) {
-        scene.setTile(TileType.DoorSouthEast, projectImages.dungeon_tiles_51, lock);
-        scene.setTile(TileType.DoorNorthEast, projectImages.dungeon_tiles_53, lock);
-        scene.setTile(TileType.DoorSouthWest, projectImages.dungeon_tiles_63, lock);
-        scene.setTile(TileType.DoorNorthWest, projectImages.dungeon_tiles_65, lock);
+    function getRoom(kind: Doors, fr: Math.FastRandom) {
+        return new Room(fr.next() + 1234, kind);
     }
 
     export function buildMap(map: Map): Room {
@@ -401,80 +252,5 @@ namespace dungeon {
         }
 
         return rooms[map.width >> 1][map.height - 1];
-    }
-
-    let templates: Image[][];
-
-    export function addRoom(kind: Doors, room: Image) {
-        if (!templates) templates = [];
-        if (!templates[kind]) templates[kind] = [];
-        templates[kind].push(room);
-    }
-
-    function getRoom(kind: Doors, fr: Math.FastRandom) {
-        return new Room(fr.next() + 1234, kind);
-    }
-
-    function getRoomInterior(kind: Doors, fr: Math.FastRandom) {
-        let flip: boolean;
-        switch (kind) {
-            case Doors.W:
-                flip = true;
-                kind = Doors.E;
-                break;
-            case Doors.N:
-                flip = true;
-                kind = Doors.S;
-                break;
-            case Doors.WS:
-                flip = true;
-                kind = Doors.ES;
-                break;
-            case Doors.NE:
-                flip = true;
-                kind = Doors.NW;
-                break;
-            case Doors.NWS:
-                flip = true;
-                kind = Doors.NES;
-                break;
-            default:
-                flip = false;
-        }
-
-        const possible = templates[kind];
-        const template = possible[fr.randomRange(0, possible.length - 1)];
-
-        if (flip) {
-            const res = template.clone();
-            if (kind === Doors.S) {
-                res.flipY();
-            }
-            else {
-                res.flipX();
-            }
-            return res;
-        }
-        else {
-            return template;
-        }
-    }
-
-    export enum Doors {
-        N = 1,
-        E = 2,
-        S = 4,
-        W = 8,
-        NE = N | E,
-        NW = N | W,
-        NS = N | S,
-        ES = E | S,
-        EW = E | W,
-        WS = W | S,
-        NES = NE | S,
-        NEW = NE | W,
-        NWS = NW | S,
-        EWS = EW | S,
-        NESW = NES | W
     }
 }
