@@ -317,6 +317,8 @@ namespace dungeon {
         protected _data: Image;
         protected _map: Image;
 
+        cleared: boolean;
+
         north: Room;
         east: Room;
         south: Room;
@@ -324,6 +326,7 @@ namespace dungeon {
 
         constructor(seed: number, public layout: Doors) {
             this.fr = new Math.FastRandom(seed);
+            this.cleared = false;
         }
 
         get data(): Image {
@@ -359,6 +362,13 @@ namespace dungeon {
         if (kind & RoomFlags.DoorEast) placeDoor(room, RoomFlags.DoorEast);
         if (kind & RoomFlags.DoorSouth) placeDoor(room, RoomFlags.DoorSouth);
         if (kind & RoomFlags.DoorWest) placeDoor(room, RoomFlags.DoorWest);
+    }
+
+    export function lockUnlockDoors(lock: boolean) {
+        scene.setTile(TileType.DoorSouthEast, projectImages.dungeon_tiles_51, lock);
+        scene.setTile(TileType.DoorNorthEast, projectImages.dungeon_tiles_53, lock);
+        scene.setTile(TileType.DoorSouthWest, projectImages.dungeon_tiles_63, lock);
+        scene.setTile(TileType.DoorNorthWest, projectImages.dungeon_tiles_65, lock);
     }
 
     export function buildMap(map: Map): Room {

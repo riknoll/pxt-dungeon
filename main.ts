@@ -90,3 +90,10 @@
 // }
 
 // lighting.init();
+
+
+
+
+controller.menu.onEvent(ControllerButtonEvent.Pressed, function () {
+    
+})

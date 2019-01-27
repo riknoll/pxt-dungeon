@@ -151,10 +151,19 @@ namespace dungeon {
                 }
             }
 
-            if (room.north) this.createDoorway(Direction.North, room.north, tilemap);
-            if (room.east) this.createDoorway(Direction.East, room.east, tilemap);
-            if (room.south) this.createDoorway(Direction.South, room.south, tilemap);
-            if (room.west) this.createDoorway(Direction.West, room.west, tilemap);
+
+
+            if (!room.cleared) {
+                const trigger = new TileTrigger(1, 1, 8, 5);
+                trigger.action = () => {
+                    lockUnlockDoors(true)
+                    this.addDoorways(room, tilemap)
+                };
+                this.triggers.push(trigger);
+            }
+            else {
+                this.addDoorways(room, tilemap);
+            }
 
             this.createPitTriggers(tilemap);
 
@@ -189,6 +198,13 @@ namespace dungeon {
         addUpdater(u: Updater) {
             if (!this.updaters) return;
             this.updaters.push(u);
+        }
+
+        protected addDoorways(room: Room, tilemap: Image) {
+            if (room.north) this.createDoorway(Direction.North, room.north, tilemap);
+            if (room.east) this.createDoorway(Direction.East, room.east, tilemap);
+            if (room.south) this.createDoorway(Direction.South, room.south, tilemap);
+            if (room.west) this.createDoorway(Direction.West, room.west, tilemap);
         }
 
         protected checkTriggers() {

@@ -46,6 +46,7 @@
 
 const map = dungeon.createMap(3, 4, Math.randomRange(1, 9999));
 const entrance = dungeon.buildMap(map);
+entrance.cleared = true;
 dungeon.loadRoom(entrance)
 dungeon.initTiles();
 
