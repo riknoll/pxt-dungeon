@@ -220,7 +220,7 @@ namespace dungeon {
             const c = this.sprite.x >> 4;
             const r = this.sprite.y >> 4;
 
-            if ((c != this.lastColumn || r != this.lastRow) && world.map.getPixel(c, r) !== TileInternal.Hole) {
+            if ((c != this.lastColumn || r != this.lastRow) && world.map.getPixel(c, r) !== TileType.Pit) {
                 this.lastColumn = c;
                 this.lastRow = r;
             }

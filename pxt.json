@@ -15,7 +15,9 @@
         "triggers.ts",
         "keyframes.ts",
         "generate.ts",
-        "dither.ts"
+        "dither.ts",
+        "hud.ts",
+        "roomGenerate.ts"
     ],
     "testFiles": [
         "test.ts"

@@ -102,19 +102,17 @@ namespace dungeon {
             case RoomTile.Normal:
             case RoomTile.EnemySpawn:
             case RoomTile.SpikeTrap:
-            case RoomTile.Empty:
+            case RoomTile.Pit:
+            case RoomTile.Key:
+            case RoomTile.Health:
+            case RoomTile.Item:
+            case RoomTile.Money:
                 return true;
             case RoomTile.Wall:
             case RoomTile.Treasure:
-            case RoomTile.Door:
-            case RoomTile.ArrowNorth:
             case RoomTile.ArrowEast:
             case RoomTile.ArrowSouth:
             case RoomTile.ArrowWest:
-            case RoomTile.FlameNorth:
-            case RoomTile.FlameEast:
-            case RoomTile.FlameSouth:
-            case RoomTile.FlameWest:
                 return false;
             default:
                 return false;

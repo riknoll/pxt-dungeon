@@ -13,6 +13,8 @@ namespace dungeon {
         DoorSouthEast,
         DoorSouthWest,
         DoorNorthWest,
+        Obstacle,
+        Pit
     }
 
     /**
@@ -36,21 +38,21 @@ namespace dungeon {
         return room;
     }
 
-    export function placeDoor(room: Image, direction: Direction) {
+    export function placeDoor(room: Image, direction: RoomFlags) {
         switch (direction) {
-            case Direction.North:
+            case RoomFlags.DoorNorth:
                 room.setPixel(room.width >> 1, 0, TileType.DoorNorthEast);
                 room.setPixel((room.width >> 1) - 1, 0, TileType.DoorNorthWest);
                 break;
-            case Direction.East:
+            case RoomFlags.DoorEast:
                 room.setPixel(room.width - 1, (room.height >> 1), TileType.DoorNorthEast);
                 room.setPixel(room.width - 1, (room.height >> 1) + 1, TileType.DoorSouthEast);
                 break;
-            case Direction.South:
+            case RoomFlags.DoorSouth:
                 room.setPixel((room.width >> 1), room.height - 1, TileType.DoorSouthEast);
                 room.setPixel((room.width >> 1) - 1, room.height - 1, TileType.DoorSouthWest);
                 break;
-            case Direction.West:
+            case RoomFlags.DoorWest:
                 room.setPixel(0, (room.height >> 1), TileType.DoorNorthWest);
                 room.setPixel(0, (room.height >> 1) + 1, TileType.DoorSouthWest);
                 break;
@@ -72,6 +74,7 @@ namespace dungeon {
         scene.setTile(TileType.DoorNorthEast, projectImages.dungeon_tiles_53, false);
         scene.setTile(TileType.DoorSouthWest, projectImages.dungeon_tiles_63, false);
         scene.setTile(TileType.DoorNorthWest, projectImages.dungeon_tiles_65, false);
+        scene.setTile(TileType.Obstacle, projectImages.dungeon_tiles_22, true);
     }
 
 
@@ -305,34 +308,6 @@ namespace dungeon {
         }
     }
 
-    /**
-     * The various room door layouts. We generate rooms in the
-     * noted directions and then rotate/flip them
-     */
-    export enum DoorLayout {
-        /* Door is North */
-        SingleEntrance,
-
-        /* Doors are North and South */
-        Straight,
-
-        /* Doors are North and East */
-        Elbow,
-
-        /* Doors are North, East, and West */
-        Tee,
-
-        /* Doors are in all directions */
-        Cross
-    }
-
-    export enum Rotation {
-        None = 0,
-        CW90 = 1,
-        CW180 = 2,
-        CW270 = 3
-    }
-
     export const ROOM_WIDTH = 10;
     export const ROOM_HEIGHT = 7;
 
@@ -347,7 +322,7 @@ namespace dungeon {
         south: Room;
         west: Room;
 
-        constructor(seed: number, public layout: DoorLayout, public rotation: Rotation) {
+        constructor(seed: number, public layout: Doors) {
             this.fr = new Math.FastRandom(seed);
         }
 
@@ -366,11 +341,11 @@ namespace dungeon {
 
             // The tilemap for this room
             this._map = emptyWalledRoom();
-            placeDoors(this._map, this.layout, this.rotation);
+            placeDoors(this._map, this.layout);
 
             // The interior of the room. Smaller because we don't need
             // to store the border
-            this._data = image.create(ROOM_WIDTH - 2, ROOM_HEIGHT - 2);
+            this._data = getRoomInterior(this.layout & 0xf, this.fr);
         }
 
         unload() {
@@ -379,32 +354,11 @@ namespace dungeon {
         }
     }
 
-    function placeDoors(room: Image, layout: DoorLayout, rotation: Rotation) {
-        placeDoor(room, rotate(Direction.North, rotation));
-
-        switch (layout) {
-            case DoorLayout.SingleEntrance:
-                break;
-            case DoorLayout.Straight:
-                placeDoor(room, rotate(Direction.South, rotation));
-                break;
-            case DoorLayout.Elbow:
-                placeDoor(room, rotate(Direction.East, rotation));
-                break;
-            case DoorLayout.Tee:
-                placeDoor(room, rotate(Direction.East, rotation));
-                placeDoor(room, rotate(Direction.West, rotation));
-                break;
-            case DoorLayout.Cross:
-                placeDoor(room, Direction.East);
-                placeDoor(room, Direction.West);
-                placeDoor(room, Direction.South);
-                break;
-        }
-    }
-
-    function rotate(direction: Direction, rotation: Rotation): Direction {
-        return (direction + rotation) % 4;
+    function placeDoors(room: Image, kind: Doors) {
+        if (kind & RoomFlags.DoorNorth) placeDoor(room, RoomFlags.DoorNorth);
+        if (kind & RoomFlags.DoorEast) placeDoor(room, RoomFlags.DoorEast);
+        if (kind & RoomFlags.DoorSouth) placeDoor(room, RoomFlags.DoorSouth);
+        if (kind & RoomFlags.DoorWest) placeDoor(room, RoomFlags.DoorWest);
     }
 
     export function buildMap(map: Map): Room {
@@ -416,7 +370,7 @@ namespace dungeon {
         for (let c = 0; c < map.width; c++) {
             rooms[c] = [];
             for (let r = 0; r < map.height; r++) {
-                rooms[c][r] = makeRoom(map.getRoom(c, r), map.fr.next());
+                rooms[c][r] = getRoom(map.getRoom(c, r), map.fr);
             }
         }
 
@@ -439,65 +393,78 @@ namespace dungeon {
         return rooms[map.width >> 1][map.height - 1];
     }
 
-    function makeRoom(flags: number, seed: number): Room {
-        let doorCount = 0;
-        if (flags & RoomFlags.DoorNorth)++doorCount;
-        if (flags & RoomFlags.DoorEast)++doorCount;
-        if (flags & RoomFlags.DoorSouth)++doorCount;
-        if (flags & RoomFlags.DoorWest)++doorCount;
+    let templates: Image[][];
 
-        let layout: DoorLayout;
-        let rotation: Rotation;
+    export function addRoom(kind: Doors, room: Image) {
+        if (!templates) templates = [];
+        if (!templates[kind]) templates[kind] = [];
+        templates[kind].push(room);
+    }
 
-        if (doorCount === 1) {
-            layout = DoorLayout.SingleEntrance;
-            if (flags & RoomFlags.DoorNorth) rotation = Rotation.None;
-            else if (flags & RoomFlags.DoorEast) rotation = Rotation.CW90;
-            else if (flags & RoomFlags.DoorSouth) rotation = Rotation.CW180;
-            else rotation = Rotation.CW270;
+    function getRoom(kind: Doors, fr: Math.FastRandom) {
+        return new Room(fr.next() + 1234, kind);
+    }
+
+    function getRoomInterior(kind: Doors, fr: Math.FastRandom) {
+        let flip: boolean;
+        switch (kind) {
+            case Doors.W:
+                flip = true;
+                kind = Doors.E;
+                break;
+            case Doors.N:
+                flip = true;
+                kind = Doors.S;
+                break;
+            case Doors.WS:
+                flip = true;
+                kind = Doors.ES;
+                break;
+            case Doors.NE:
+                flip = true;
+                kind = Doors.NW;
+                break;
+            case Doors.NWS:
+                flip = true;
+                kind = Doors.NES;
+                break;
+            default:
+                flip = false;
         }
-        else if (doorCount === 2) {
-            if (flags & RoomFlags.DoorNorth) {
-                if (flags & RoomFlags.DoorSouth) {
-                    layout = DoorLayout.Straight;
-                    rotation = Rotation.None;
-                }
-                else if (flags & RoomFlags.DoorEast) {
-                    layout = DoorLayout.Elbow;
-                    rotation = Rotation.None;
-                }
-                else {
-                    layout = DoorLayout.Elbow;
-                    rotation = Rotation.CW270;
-                }
-            }
-            else if (flags & RoomFlags.DoorEast) {
-                if (flags & RoomFlags.DoorWest) {
-                    layout = DoorLayout.Straight;
-                    rotation = Rotation.CW90;
-                }
-                else {
-                    layout = DoorLayout.Elbow;
-                    rotation = Rotation.CW90;
-                }
+
+        const possible = templates[kind];
+        const template = possible[fr.randomRange(0, possible.length - 1)];
+
+        if (flip) {
+            const res = template.clone();
+            if (kind === Doors.S) {
+                res.flipY();
             }
             else {
-                layout = DoorLayout.Elbow;
-                rotation = Rotation.CW180;
+                res.flipX();
             }
-        }
-        else if (doorCount === 3) {
-            layout = DoorLayout.Tee;
-            if (!(flags & RoomFlags.DoorNorth)) rotation = Rotation.CW180;
-            else if (!(flags & RoomFlags.DoorEast)) rotation = Rotation.CW270;
-            else if (!(flags & RoomFlags.DoorSouth)) rotation = Rotation.None;
-            else rotation = Rotation.CW90;
+            return res;
         }
         else {
-            layout = DoorLayout.Cross;
-            rotation = Rotation.None;
+            return template;
         }
+    }
 
-        return new Room(seed, layout, rotation);
+    export enum Doors {
+        N = 1,
+        E = 2,
+        S = 4,
+        W = 8,
+        NE = N | E,
+        NW = N | W,
+        NS = N | S,
+        ES = E | S,
+        EW = E | W,
+        WS = W | S,
+        NES = NE | S,
+        NEW = NE | W,
+        NWS = NW | S,
+        EWS = EW | S,
+        NESW = NES | W
     }
 }

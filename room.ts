@@ -12,8 +12,8 @@ namespace dungeon {
     }
 
     export enum RoomTile {
-        Empty,
         Normal,
+        Pit,
         Wall,
         Treasure,
         EnemySpawn,
@@ -22,31 +22,16 @@ namespace dungeon {
         ArrowEast,
         ArrowSouth,
         ArrowWest,
-        FlameNorth,
-        FlameEast,
-        FlameSouth,
-        FlameWest,
-        Door
-    }
-
-    export enum TileInternal {
-        Floor,
-        Hole,
-        Wall,
-        Spike,
-        Object,
-        DoorNorth,
-        DoorEast,
-        DoorSouth,
-        DoorWest
+        Key,
+        Health,
+        Item,
+        Money
     }
 
     function initPlayer() {
         const s = sprites.create(sprites.castle.heroWalkFront1, SpriteKind.Player);
         world.player = new Character(s);
         scene.cameraFollowSprite(s);
-
-        info.setLife(3);
     }
 
     function initHandlers() {
@@ -86,9 +71,12 @@ namespace dungeon {
         trackedSprites: Sprite[];
         enemies: Character[];
 
+        playerHealth: number;
+
         map: Image;
 
         constructor() {
+            this.playerHealth = 3;
         }
 
         update() {
@@ -111,60 +99,55 @@ namespace dungeon {
                 for (let row = 0; row < roomObjects.height; row++) {
                     const data: RoomTile = roomObjects.getPixel(col, row);
 
-                    let tile: TileInternal;
+                    let tile: TileType;
 
                     switch (data) {
-                        case RoomTile.Empty:
-                            tile = TileInternal.Hole;
+                        case RoomTile.Pit:
+                            tile = TileType.Pit;
                             break;
                         case RoomTile.Normal:
-                            tile = TileInternal.Floor;
-                            break;
                         case RoomTile.Wall:
-                            tile = TileInternal.Wall;
-                            break;
                         case RoomTile.Treasure:
-                            tile = TileInternal.Object;
                             break;
-                        case RoomTile.EnemySpawn:
-                            tile = TileInternal.Floor;
+                        case RoomTile.EnemySpawn: ;
                             this.createEnemy(col, row)
                             break;
                         case RoomTile.SpikeTrap:
-                            tile = TileInternal.Floor;
                             this.createSpikeTrap(col, row);
                             break;
                         case RoomTile.ArrowNorth:
-                            tile = TileInternal.Object;
+                            tile = TileType.Obstacle;
                             this.createArrowLauncher(col, row, Direction.North, room.data);
                             break;
                         case RoomTile.ArrowEast:
-                            tile = TileInternal.Object;
+                            tile = TileType.Obstacle;
                             this.createArrowLauncher(col, row, Direction.East, room.data);
                             break;
                         case RoomTile.ArrowSouth:
-                            tile = TileInternal.Object;
+                            tile = TileType.Obstacle;
                             this.createArrowLauncher(col, row, Direction.South, room.data);
                             break;
                         case RoomTile.ArrowWest:
-                            tile = TileInternal.Object;
+                            tile = TileType.Obstacle;
                             this.createArrowLauncher(col, row, Direction.West, room.data);
                             break;
-                        case RoomTile.FlameNorth:
-                            tile = TileInternal.Object;
+                        case RoomTile.Key:
+                            tile = TileType.Obstacle;
                             break;
-                        case RoomTile.FlameEast:
-                            tile = TileInternal.Object;
+                        case RoomTile.Health:
+                            tile = TileType.Obstacle;
                             break;
-                        case RoomTile.FlameSouth:
-                            tile = TileInternal.Object;
+                        case RoomTile.Money:
+                            tile = TileType.Obstacle;
                             break;
-                        case RoomTile.FlameWest:
-                            tile = TileInternal.Object;
+                        case RoomTile.Item:
+                            tile = TileType.Obstacle;
                             break;
                     }
 
-                    // tilemap.setPixel(col + 1, row + 1, tile);
+                    if (tile != undefined) {
+                        tilemap.setPixel(col + 1, row + 1, tile);
+                    }
                 }
             }
 
@@ -177,10 +160,11 @@ namespace dungeon {
 
             scene.setTileMap(tilemap);
             this.map = tilemap;
+            game.currentScene().tileMap.z = -20;
 
             if (enteringFrom != undefined) {
                 // Move the player to the doorway
-                
+
                 switch (enteringFrom) {
                     case Direction.North:
                         this.player.sprite.x = screen.width >> 1;
@@ -291,6 +275,7 @@ namespace dungeon {
             trap.target.left = (col + 1) << 4;
             trap.target.top = (row + 1) << 4;
             trap.target.z = -1;
+            this.trackedSprites.push(trap.target);
 
             const trigger = new MultiTrigger([
                 new SimpleTrigger(() => !trap.isRunning()),
@@ -344,7 +329,7 @@ namespace dungeon {
                         continue;
                     }
 
-                    isPit = map.getPixel(c, r) === TileInternal.Hole;
+                    isPit = map.getPixel(c, r) === TileType.Pit;
                     if (isPit) {
                         // Make the biggest rectangle we can
                         marked[index] = true;
@@ -358,7 +343,7 @@ namespace dungeon {
                             height++;
 
                             for (let i = 0; i < width; i++) {
-                                if (marked[getIndex(c + i, r + height, map.width)] || map.getPixel(c + i, r + height) !== TileInternal.Hole) {
+                                if (marked[getIndex(c + i, r + height, map.width)] || map.getPixel(c + i, r + height) !== TileType.Pit) {
                                     width--;
                                     height--;
                                     running = false;
@@ -367,7 +352,7 @@ namespace dungeon {
                             }
 
                             for (let i = 0; i < height - 1; i++) {
-                                if (marked[getIndex(c + width, r + i, map.width)] || map.getPixel(c + width, r + i) !== TileInternal.Hole) {
+                                if (marked[getIndex(c + width, r + i, map.width)] || map.getPixel(c + width, r + i) !== TileType.Pit) {
                                     width--;
                                     height--;
                                     running = false;
@@ -427,6 +412,7 @@ namespace dungeon {
         world = new World();
         initPlayer();
         initHandlers();
+        initHud();
 
         game.onUpdate(function () {
             world.update();
