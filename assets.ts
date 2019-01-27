@@ -320,6 +320,12 @@ namespace projectImages {
 
     // export const tiles = [dungeon_tiles_0, dungeon_tiles_1, dungeon_tiles_2, dungeon_tiles_3, dungeon_tiles_4, dungeon_tiles_5, dungeon_tiles_6, dungeon_tiles_7, dungeon_tiles_8, dungeon_tiles_9, dungeon_tiles_10, dungeon_tiles_11, dungeon_tiles_12, dungeon_tiles_13, dungeon_tiles_14, dungeon_tiles_15, dungeon_tiles_16, dungeon_tiles_17, dungeon_tiles_18, dungeon_tiles_19, dungeon_tiles_20, dungeon_tiles_21, dungeon_tiles_22, dungeon_tiles_23, dungeon_tiles_24, dungeon_tiles_25, dungeon_tiles_26, dungeon_tiles_27, dungeon_tiles_28, dungeon_tiles_29, dungeon_tiles_30, dungeon_tiles_31, dungeon_tiles_32, dungeon_tiles_33, dungeon_tiles_34, dungeon_tiles_35, dungeon_tiles_36, dungeon_tiles_37, dungeon_tiles_38, dungeon_tiles_39, dungeon_tiles_40, dungeon_tiles_41, dungeon_tiles_42, dungeon_tiles_43, dungeon_tiles_44, dungeon_tiles_45, dungeon_tiles_46, dungeon_tiles_47, dungeon_tiles_48, dungeon_tiles_49, dungeon_tiles_50, dungeon_tiles_51, dungeon_tiles_52, dungeon_tiles_53, dungeon_tiles_54, dungeon_tiles_55, dungeon_tiles_56, dungeon_tiles_57, dungeon_tiles_58, dungeon_tiles_59, dungeon_tiles_60, dungeon_tiles_61, dungeon_tiles_62, dungeon_tiles_63, dungeon_tiles_64, dungeon_tiles_65,];
 
+    export function init() {
+
+    }
+}
+
+namespace dungeon {
 
     export function makeSpikeTrap() {
         const kf = new KeyFrameAnimation();
@@ -608,10 +614,6 @@ namespace projectImages {
             sprites.castle.heroFrontAttack4
         ];
         animation.attachAnimation(sprite, attackSouth);
-    }
-
-    export function init() {
-
     }
 }
 

@@ -1,4 +1,6 @@
 namespace dungeon {
+    const enemySpeed = 40;
+    
     export class Enemy extends Character {
         protected target: Sprite;
         health: number;

@@ -24,9 +24,8 @@ namespace dungeon {
         NoMovement = Attacking | Falling
     }
 
-    const attackAnimationInterval = 75;
+    export const attackAnimationInterval = 75;
     const walkSpeed = 100;
-    const enemySpeed = 40;
 
     export class Effect {
         target: Character;
