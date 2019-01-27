@@ -18,6 +18,7 @@
         "keyframes.ts",
         "generate.ts",
         "hud.ts",
+        "lighting.ts",
         "roomGenerate.ts"
     ],
     "testFiles": [
