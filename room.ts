@@ -1,4 +1,3 @@
-// Add your code here
 namespace dungeon {
     export enum RoomFlags {
         DoorNorth = 1,

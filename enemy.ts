@@ -9,6 +9,10 @@ namespace dungeon {
             super(sprites.create(sprites.castle.skellyFront, SpriteKind.Enemy));
             this.target = target;
             this.health = 2;
+
+            this.sprite.onDestroyed(function () {
+                world.enemies.removeElement(this);
+            });
         }
 
         init() {

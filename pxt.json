@@ -24,5 +24,6 @@
     "testFiles": [
         "test.ts"
     ],
-    "public": false
+    "public": false,
+    "preferredEditor": "tsprj"
 }

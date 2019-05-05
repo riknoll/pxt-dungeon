@@ -7,7 +7,8 @@ namespace dungeon {
         Arrow,
         Enemy,
         Launcher,
-        SpikeTrap
+        SpikeTrap,
+        Door
     }
 
     export enum RoomTile {
@@ -119,15 +120,25 @@ namespace dungeon {
                 }
             }
 
-
+            if (this.enemies.length === 0) {
+                room.cleared = true;
+            }
 
             if (!room.cleared) {
-                const trigger = new TileTrigger(1, 1, 8, 5);
-                trigger.action = () => {
+                const armTrigger = new TileTrigger(1, 1, 8, 5);
+                armTrigger.action = () => {
                     lockUnlockDoors(true)
-                    this.addDoorways(room, tilemap)
+                    this.blockDoorways(room)
                 };
-                this.triggers.push(trigger);
+                this.triggers.push(armTrigger);
+
+                const clearTrigger = new SimpleTrigger(c => !this.enemies.length);
+                clearTrigger.action = () => {
+                    lockUnlockDoors(false)
+                    this.addDoorways(room, tilemap)
+                    sprites.allOfKind(SpriteKind.Door).forEach(d => d.destroy());
+                }
+                this.triggers.push(clearTrigger)
             }
             else {
                 this.addDoorways(room, tilemap);
@@ -173,6 +184,13 @@ namespace dungeon {
             if (room.east) this.createDoorway(Direction.East, room.east, tilemap);
             if (room.south) this.createDoorway(Direction.South, room.south, tilemap);
             if (room.west) this.createDoorway(Direction.West, room.west, tilemap);
+        }
+
+        protected blockDoorways(room: Room) {
+            if (room.north) this.blockDoor(Direction.North);
+            if (room.east) this.blockDoor(Direction.East);
+            if (room.south) this.blockDoor(Direction.South);
+            if (room.west) this.blockDoor(Direction.West);
         }
 
         protected checkTriggers() {
@@ -381,6 +399,29 @@ namespace dungeon {
                 }
             }
             this.trackedSprites = [];
+        }
+
+        protected blockDoor(direction: Direction) {
+            const door = sprites.create(sprites.castle.rock0, SpriteKind.Door);
+            door.setFlag(SpriteFlag.Ghost, true);
+            this.trackedSprites.push(door);
+
+            switch (direction) {
+                case Direction.North:
+                    door.top = 0;
+                    break;
+                case Direction.South:
+                    door.bottom = screen.height - 8;
+                    break;
+                case Direction.East:
+                    door.y = 64;
+                    door.right = screen.width;
+                    break;
+                case Direction.West:
+                    door.y = 64;
+                    door.left = 0;
+                    break;
+            }
         }
     }
 
